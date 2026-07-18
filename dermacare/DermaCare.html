@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DermaCare — Teledermatology</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --primary: #0B3D35;
+    --primary-mid: #1A6B5C;
+    --primary-light: #2E9B84;
+    --accent: #C8965A;
+    --accent-light: #E8B86D;
+    --bg: #F5F2EC;
+    --surface: #FFFFFF;
+    --surface-alt: #EFF7F4;
+    --border: #D8E8E3;
+    --text-primary: #0F2820;
+    --text-secondary: #4A6258;
+    --text-muted: #7A9990;
+    --danger: #C0392B;
+    --success: #1A6B5C;
+    --warning: #D4870A;
+    --info: #1A5276;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); min-height: 100vh; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes pulse { 0%,100% { transform:scale(1); opacity:1; } 50% { transform:scale(1.05); opacity:0.7; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes progressFill { from { width: 0%; } to { width: 100%; } }
+  .fade-up { animation: fadeUp 0.5s ease forwards; }
+  .serif { font-family: 'Cormorant Garamond', serif; }
+  .page { display: none; } .page.active { display: block; }
+  .card { background: white; border-radius: 16px; border: 1px solid var(--border); }
+  .tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+  .tag-green { background: var(--surface-alt); color: var(--primary); }
+  .tag-amber { background: #FEF3E0; color: #8B5E0A; }
+  .tag-red { background: #FDE8E8; color: var(--danger); }
+  .tag-blue { background: #E8F0FE; color: var(--info); }
+  .btn-primary { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 12px 28px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px; }
+  .btn-primary:hover { background: var(--primary-mid); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(11,61,53,0.2); }
+  .btn-outline { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); border-radius: 8px; padding: 11px 28px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .btn-outline:hover { background: var(--primary); color: white; }
+  .btn-accent { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 12px 28px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .btn-accent:hover { background: var(--accent-light); transform: translateY(-1px); }
+  .btn-ghost { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.9); border: 1.5px solid rgba(255,255,255,0.3); border-radius: 8px; padding: 11px 28px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+  .btn-ghost:hover { background: rgba(255,255,255,0.2); }
+  input[type=text], input[type=email], textarea, select {
+    font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-primary);
+    border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 14px;
+    background: white; outline: none; width: 100%; transition: border-color 0.2s;
+  }
+  input[type=text]:focus, textarea:focus { border-color: var(--primary-light); }
+  .nav-link { cursor: pointer; font-size: 14px; font-weight: 400; color: var(--text-secondary); padding: 6px 0; border-bottom: 1.5px solid transparent; transition: all 0.2s; }
+  .nav-link:hover { color: var(--primary); border-bottom-color: var(--primary-light); }
+  .nav-link.active { color: var(--primary); font-weight: 500; border-bottom-color: var(--accent); }
+  .chat-bubble-user { background: var(--primary); color: white; border-radius: 18px 18px 4px 18px; padding: 10px 16px; max-width: 75%; font-size: 14px; line-height: 1.6; }
+  .chat-bubble-ai { background: white; color: var(--text-primary); border-radius: 18px 18px 18px 4px; padding: 10px 16px; max-width: 78%; font-size: 14px; line-height: 1.6; border: 1px solid var(--border); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); animation: pulse 1.2s ease-in-out infinite; display: inline-block; }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  .feature-card { transition: all 0.2s; cursor: pointer; }
+  .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(11,61,53,0.1); }
+  .condition-tag { background: white; border: 1px solid var(--border); border-radius: 24px; padding: 8px 18px; font-size: 14px; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; display: inline-block; }
+  .condition-tag:hover { background: var(--primary); color: white; border-color: var(--primary); }
+  .case-row { padding: 16px 20px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 14px; }
+  .case-row:hover { background: var(--bg); }
+  .case-row.selected { background: var(--surface-alt); }
+  .tab-btn { padding: 8px 20px; border-radius: 7px; border: none; background: transparent; color: var(--text-secondary); font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+  .tab-btn.active { background: white; color: var(--primary); font-weight: 500; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .step-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; transition: all 0.3s; flex-shrink: 0; }
+  .step-num.done { background: var(--primary); color: white; }
+  .step-num.pending { background: var(--border); color: var(--text-muted); }
+  #progress-bar { transition: width 0.3s ease; }
+  .spinner { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--primary); animation: spin 1s linear infinite; position: absolute; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav style="background:white;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;">
+  <div style="max-width:1100px;margin:0 auto;padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;">
+    <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="showPage('home')">
+      <div style="width:32px;height:32px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="white" opacity="0.3"/><path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" fill="white"/></svg>
+      </div>
+      <span class="serif" style="font-size:20px;font-weight:600;color:var(--primary);letter-spacing:-0.3px;">DermaCare</span>
+    </div>
+    <div style="display:flex;gap:28px;align-items:center;" id="nav-links">
+      <span class="nav-link active" id="nav-home" onclick="showPage('home')">Home</span>
+      <span class="nav-link" id="nav-doctor" onclick="handleDoctorClick()" style="display:none;">Doctor Portal</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;" id="nav-auth-buttons">
+      <button class="btn-outline" style="padding:8px 18px;font-size:13px;" onclick="window.location.href='/dermacare/auth/login_page.php'">Sign In</button>
+      <button class="btn-primary" style="padding:8px 18px;font-size:13px;" onclick="window.location.href='/dermacare/auth/register_page.php'">Get Started</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== HOME PAGE ===== -->
+<div id="page-home" class="page active">
+  <!-- Hero -->
+  <section style="background:linear-gradient(135deg,#0B3D35 0%,#1A6B5C 60%,#2E9B84 100%);padding:90px 32px 80px;overflow:hidden;position:relative;">
+    <div style="position:absolute;top:-80px;right:-80px;width:400px;height:400px;background:rgba(255,255,255,0.04);border-radius:50%;"></div>
+    <div style="position:absolute;bottom:-60px;left:30%;width:300px;height:300px;background:rgba(255,255,255,0.03);border-radius:50%;"></div>
+    <div style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;">
+      <div class="fade-up">
+        
+        <h1 class="serif" style="font-size:52px;font-weight:600;color:white;line-height:1.18;margin-bottom:20px;letter-spacing:-0.5px;">
+          Skin health,<br/><em style="color:#E8B86D;font-style:italic;">expertly</em><br/>understood.
+        </h1>
+        <p style="font-size:16px;color:rgba(255,255,255,0.75);line-height:1.75;margin-bottom:36px;max-width:420px;">
+          Upload a photo, describe your symptoms, and receive a professional review by board-certified dermatologists — all within days.
+        </p>
+        <div style="display:flex;gap:12px;">
+          <button class="btn-accent" onclick="window.location.href='/dermacare/auth/login_page.php'" style="padding:14px 32px;font-size:15px;">Submit My Case</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div style="background:rgba(255,255,255,0.1);border-radius:16px;padding:20px 24px;border:1px solid rgba(255,255,255,0.15);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <div style="width:36px;height:36px;background:#E8B86D;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">🔍</div>
+            <div>
+              <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:2px;">Analysis Complete</div>
+              <div style="font-size:15px;font-weight:500;color:white;">Condition Identified</div>
+            </div>
+            <div style="margin-left:auto;"><span class="tag" style="background:rgba(200,150,90,0.25);color:#E8B86D;">Doctor Reviewed</span></div>
+          </div>
+          <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:12px 16px;">
+            <div style="font-size:14px;font-weight:500;color:white;margin-bottom:4px;">Atopic Dermatitis (Eczema)</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.65);line-height:1.6;">Inflammatory skin condition with characteristic dry, itchy patches. Recommend moisturizing regimen and follow-up consultation.</div>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;">
+            <span class="tag" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">Doctor Review Pending</span>
+            <span class="tag" style="background:rgba(200,150,90,0.2);color:#E8B86D;">Non-urgent</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:16px 20px;border:1px solid rgba(255,255,255,0.1);"><div class="serif" style="font-size:28px;font-weight:600;color:white;line-height:1;">24h</div><div style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:4px;">Avg. response time</div></div>
+          <div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:16px 20px;border:1px solid rgba(255,255,255,0.1);"><div class="serif" style="font-size:28px;font-weight:600;color:white;line-height:1;">100%</div><div style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:4px;">Human reviewed</div></div>
+          <div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:16px 20px;border:1px solid rgba(255,255,255,0.1);"><div class="serif" style="font-size:28px;font-weight:600;color:white;line-height:1;">100+</div><div style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:4px;">Cases reviewed</div></div>
+          <div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:16px 20px;border:1px solid rgba(255,255,255,0.1);"><div class="serif" style="font-size:28px;font-weight:600;color:white;line-height:1;">20+</div><div style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:4px;">Partner dermatologists</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section style="max-width:1100px;margin:0 auto;padding:72px 32px;">
+    <div style="text-align:center;margin-bottom:52px;">
+      <span class="tag tag-green" style="margin-bottom:14px;display:inline-block;">How It Works</span>
+      <h2 class="serif" style="font-size:38px;font-weight:600;color:var(--primary);margin-bottom:12px;">Three steps to clearer skin</h2>
+      <p style="font-size:15px;color:var(--text-secondary);max-width:480px;margin:0 auto;line-height:1.7;">Our platform connects patients directly with certified dermatologists for reliable, professional skin health assessments.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;">
+      <div class="card feature-card" style="padding:28px;border-top:3px solid var(--primary);" onclick="window.location.href='/dermacare/auth/register_page.php'">
+        <div style="font-size:28px;margin-bottom:16px;">📋</div>
+        <div style="font-size:12px;font-weight:500;color:var(--text-muted);margin-bottom:6px;letter-spacing:1px;text-transform:uppercase;">Step 1</div>
+        <h3 style="font-size:18px;font-weight:500;color:var(--primary);margin-bottom:10px;">Submit Your Case</h3>
+        <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;">Register and upload clear photos of the affected area along with a description of your symptoms.</p>
+        <div style="margin-top:20px;font-size:13px;color:var(--primary-light);font-weight:500;">Get started →</div>
+      </div>
+      <div class="card feature-card" style="padding:28px;border-top:3px solid var(--accent);">
+        <div style="font-size:28px;margin-bottom:16px;">🔒</div>
+        <div style="font-size:12px;font-weight:500;color:var(--text-muted);margin-bottom:6px;letter-spacing:1px;text-transform:uppercase;">Step 2</div>
+        <h3 style="font-size:18px;font-weight:500;color:var(--primary);margin-bottom:10px;">Secure Review</h3>
+        <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;">Your photos and data are encrypted and securely transmitted to a certified dermatologist for review.</p>
+        <div style="margin-top:20px;font-size:13px;color:var(--primary-light);font-weight:500;">Learn more →</div>
+      </div>
+      <div class="card feature-card" style="padding:28px;border-top:3px solid var(--primary-light);" onclick="window.location.href='/dermacare/auth/login_page.php'">
+        <div style="font-size:28px;margin-bottom:16px;">👨‍⚕️</div>
+        <div style="font-size:12px;font-weight:500;color:var(--text-muted);margin-bottom:6px;letter-spacing:1px;text-transform:uppercase;">Step 3</div>
+        <h3 style="font-size:18px;font-weight:500;color:var(--primary);margin-bottom:10px;">Doctor Feedback</h3>
+        <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;">Receive a professional assessment and personalised treatment recommendations from a certified dermatologist.</p>
+        <div style="margin-top:20px;font-size:13px;color:var(--primary-light);font-weight:500;">View your cases →</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Conditions -->
+  <section style="background:var(--surface-alt);padding:60px 32px;">
+    <div style="max-width:1100px;margin:0 auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;">
+        <div>
+          <span class="tag tag-green" style="margin-bottom:10px;display:inline-block;">Coverage</span>
+          <h2 class="serif" style="font-size:32px;font-weight:600;color:var(--primary);">Conditions we analyze</h2>
+        </div>
+        <button class="btn-outline" style="white-space:nowrap;" onclick="showAllConditions()">View All Conditions</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;">
+        <span class="condition-tag">Acne &amp; Breakouts</span>
+        <span class="condition-tag">Eczema</span>
+        <span class="condition-tag">Psoriasis</span>
+        <span class="condition-tag">Rosacea</span>
+        <span class="condition-tag">Melasma</span>
+        <span class="condition-tag">Skin Lesions</span>
+        <span class="condition-tag">Dermatitis</span>
+        <span class="condition-tag">Fungal Infections</span>
+        <span class="condition-tag">Hives (Urticaria)</span>
+        <span class="condition-tag">Seborrheic Dermatitis</span>
+        <span class="condition-tag">Vitiligo</span>
+        <span class="condition-tag">Ringworm</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section style="max-width:1100px;margin:0 auto;padding:72px 32px;">
+    <div style="background:var(--primary);border-radius:20px;padding:60px 40px;position:relative;overflow:hidden;text-align:center;">
+      <div style="position:absolute;top:-60px;right:-60px;width:280px;height:280px;background:rgba(255,255,255,0.04);border-radius:50%;"></div>
+      <span class="tag" style="background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);margin-bottom:20px;display:inline-block;">Start Today</span>
+      <h2 class="serif" style="font-size:40px;font-weight:600;color:white;margin-bottom:16px;">Ready to understand your skin?</h2>
+      <p style="font-size:15px;color:rgba(255,255,255,0.7);margin-bottom:32px;max-width:480px;margin-left:auto;margin-right:auto;">Join thousands who trust DermaCare for early detection, accurate analysis, and professional guidance.</p>
+      <button class="btn-accent" onclick="window.location.href='/dermacare/auth/register_page.php'" style="font-size:15px;padding:14px 36px;">Get Started Now</button>
+    </div>
+  </section>
+</div>
+
+<!-- ===== ANALYSIS PAGE ===== -->
+<div id="page-analysis" class="page">
+  <div style="max-width:900px;margin:0 auto;padding:40px 32px;">
+    <div style="margin-bottom:32px;">
+      <span class="tag tag-green" style="margin-bottom:12px;display:inline-block;">AI Analysis</span>
+      <h1 class="serif" style="font-size:36px;font-weight:600;color:var(--primary);margin-bottom:8px;">Skin Condition Analysis</h1>
+      <p style="font-size:15px;color:var(--text-secondary);">Upload a clear photo of the affected area for AI-powered assessment.</p>
+    </div>
+
+    <!-- Step indicators -->
+    <div style="display:flex;align-items:center;margin-bottom:40px;" id="step-indicators">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="step-num done" id="step-n1">1</div>
+        <span style="font-size:13px;color:var(--primary);font-weight:500;" id="step-l1">Upload</span>
+      </div>
+      <div style="flex:1;height:1px;background:var(--border);margin:0 12px;" id="step-line1"></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="step-num pending" id="step-n2">2</div>
+        <span style="font-size:13px;color:var(--text-muted);" id="step-l2">Preview</span>
+      </div>
+      <div style="flex:1;height:1px;background:var(--border);margin:0 12px;"></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="step-num pending" id="step-n3">3</div>
+        <span style="font-size:13px;color:var(--text-muted);" id="step-l3">Analyzing</span>
+      </div>
+      <div style="flex:1;height:1px;background:var(--border);margin:0 12px;"></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="step-num pending" id="step-n4">4</div>
+        <span style="font-size:13px;color:var(--text-muted);" id="step-l4">Results</span>
+      </div>
+    </div>
+
+    <!-- Upload Step -->
+    <div id="analysis-upload">
+      <div class="card" style="overflow:hidden;">
+        <div id="drop-zone" style="border:2px dashed var(--border);border-radius:16px;padding:60px 40px;text-align:center;background:white;transition:all 0.2s;cursor:pointer;"
+          ondragover="event.preventDefault();this.style.borderColor='var(--primary-light)';this.style.background='var(--surface-alt)';"
+          ondragleave="this.style.borderColor='var(--border)';this.style.background='white';"
+          ondrop="handleDrop(event)" onclick="document.getElementById('file-input').click()">
+          <div style="width:64px;height:64px;background:var(--surface-alt);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:28px;">📷</div>
+          <h3 style="font-size:18px;font-weight:500;color:var(--primary);margin-bottom:8px;">Drop your photo here</h3>
+          <p style="font-size:14px;color:var(--text-secondary);margin-bottom:24px;">or click to browse — JPG, PNG, WEBP up to 10MB</p>
+          <button class="btn-primary" onclick="event.stopPropagation();document.getElementById('file-input').click();">Choose Photo</button>
+          <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileSelect(this)"/>
+        </div>
+        <div style="background:#FEF9F0;border-top:1px solid #F4E4C0;padding:14px 24px;display:flex;align-items:center;gap:10px;">
+          <span>🔒</span>
+          <span style="font-size:13px;color:#8B5E0A;">Your photos are encrypted and never shared. For educational purposes only — not a substitute for professional medical advice.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview Step -->
+    <div id="analysis-preview" style="display:none;">
+      <div class="card" style="overflow:hidden;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+          <div style="padding:28px;border-right:1px solid var(--border);">
+            <div style="font-size:13px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;">Uploaded Image</div>
+            <img id="preview-img" src="" alt="Preview" style="width:100%;border-radius:12px;object-fit:cover;max-height:280px;"/>
+          </div>
+          <div style="padding:28px;">
+            <div style="font-size:13px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:20px;">Before Analysis</div>
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px;">For best results, ensure the photo is:</p>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
+              <div style="display:flex;align-items:center;gap:10px;"><div style="width:20px;height:20px;border-radius:50%;background:var(--surface-alt);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--primary);font-weight:700;flex-shrink:0;">✓</div><span style="font-size:14px;color:var(--text-secondary);">Well-lit and in focus</span></div>
+              <div style="display:flex;align-items:center;gap:10px;"><div style="width:20px;height:20px;border-radius:50%;background:var(--surface-alt);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--primary);font-weight:700;flex-shrink:0;">✓</div><span style="font-size:14px;color:var(--text-secondary);">Shows the affected area clearly</span></div>
+              <div style="display:flex;align-items:center;gap:10px;"><div style="width:20px;height:20px;border-radius:50%;background:var(--surface-alt);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--primary);font-weight:700;flex-shrink:0;">✓</div><span style="font-size:14px;color:var(--text-secondary);">Free from filters or editing</span></div>
+              <div style="display:flex;align-items:center;gap:10px;"><div style="width:20px;height:20px;border-radius:50%;background:var(--surface-alt);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--primary);font-weight:700;flex-shrink:0;">✓</div><span style="font-size:14px;color:var(--text-secondary);">Taken from 15–30 cm distance</span></div>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <button class="btn-outline" style="flex:1;" onclick="resetAnalysis()">Change Photo</button>
+              <button class="btn-primary" style="flex:1;" onclick="startAnalysis()">Analyze Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analyzing Step -->
+    <div id="analysis-loading" style="display:none;">
+      <div class="card" style="padding:60px 40px;text-align:center;">
+        <div style="width:80px;height:80px;border-radius:50%;background:var(--surface-alt);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;position:relative;">
+          <div class="spinner"></div>
+          <span style="font-size:28px;position:relative;z-index:1;">🔬</span>
+        </div>
+        <h3 class="serif" style="font-size:24px;font-weight:600;color:var(--primary);margin-bottom:8px;">Analyzing your skin condition...</h3>
+        <p style="font-size:14px;color:var(--text-secondary);margin-bottom:32px;">Our AI is examining texture, color patterns, and morphological features</p>
+        <div style="background:var(--bg);border-radius:8px;height:8px;max-width:400px;margin:0 auto 12px;overflow:hidden;">
+          <div id="progress-bar" style="height:100%;background:linear-gradient(90deg,var(--primary),var(--primary-light));width:0%;border-radius:8px;transition:width 0.3s;"></div>
+        </div>
+        <span id="progress-text" style="font-size:13px;color:var(--text-muted);">0% complete</span>
+        <div style="margin-top:28px;display:flex;justify-content:center;gap:20px;flex-wrap:wrap;">
+          <span class="analysis-step" style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:4px;transition:color 0.3s;">● Pattern recognition</span>
+          <span class="analysis-step" style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:4px;transition:color 0.3s;">● Color analysis</span>
+          <span class="analysis-step" style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:4px;transition:color 0.3s;">● Severity assessment</span>
+          <span class="analysis-step" style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:4px;transition:color 0.3s;">● Condition matching</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Step -->
+    <div id="analysis-results" style="display:none;">
+      <div class="card" style="padding:28px;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;">
+          <div>
+            <div style="font-size:13px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Analysis Results</div>
+            <h2 class="serif" style="font-size:26px;font-weight:600;color:var(--primary);">Findings &amp; Assessment</h2>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="tag tag-amber">Doctor Review Pending</span>
+            <button class="btn-outline" style="padding:7px 16px;font-size:12px;">Export PDF</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div style="display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--surface-alt);border-radius:12px;border:1.5px solid var(--border);">
+            <div style="width:40px;height:40px;border-radius:10px;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:16px;color:white;font-weight:600;flex-shrink:0;">1</div>
+            <div style="flex:1;"><div style="font-size:12px;color:var(--text-muted);margin-bottom:2px;">Primary Condition</div><div style="font-size:15px;font-weight:500;">Atopic Dermatitis</div></div>
+            <div style="text-align:right;"><div class="serif" style="font-size:20px;font-weight:600;color:var(--primary);">94%</div><div style="font-size:12px;color:var(--text-muted);">confidence</div></div>
+            <span class="tag tag-amber">Moderate</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--bg);border-radius:12px;">
+            <div style="width:40px;height:40px;border-radius:10px;background:white;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0;color:var(--text-secondary);">2</div>
+            <div style="flex:1;"><div style="font-size:12px;color:var(--text-muted);margin-bottom:2px;">Secondary Finding</div><div style="font-size:15px;font-weight:500;">Dry Skin (Xerosis)</div></div>
+            <div style="text-align:right;"><div class="serif" style="font-size:20px;font-weight:600;color:var(--text-secondary);">87%</div><div style="font-size:12px;color:var(--text-muted);">confidence</div></div>
+            <span class="tag tag-green">Mild</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--bg);border-radius:12px;">
+            <div style="width:40px;height:40px;border-radius:10px;background:white;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0;color:var(--text-secondary);">?</div>
+            <div style="flex:1;"><div style="font-size:12px;color:var(--text-muted);margin-bottom:2px;">Possible Differential</div><div style="font-size:15px;font-weight:500;">Contact Dermatitis</div></div>
+            <div style="text-align:right;"><div class="serif" style="font-size:20px;font-weight:600;color:var(--text-secondary);">42%</div><div style="font-size:12px;color:var(--text-muted);">confidence</div></div>
+            <span class="tag tag-blue">Low</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="card" style="padding:24px;">
+          <h3 style="font-size:16px;font-weight:500;color:var(--primary);margin-bottom:16px;">AI Recommendations</h3>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:flex-start;gap:10px;"><div style="width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:6px;flex-shrink:0;"></div><span style="font-size:14px;color:var(--text-secondary);line-height:1.6;">Apply fragrance-free moisturizer twice daily</span></div>
+            <div style="display:flex;align-items:flex-start;gap:10px;"><div style="width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:6px;flex-shrink:0;"></div><span style="font-size:14px;color:var(--text-secondary);line-height:1.6;">Avoid known irritants and allergens</span></div>
+            <div style="display:flex;align-items:flex-start;gap:10px;"><div style="width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:6px;flex-shrink:0;"></div><span style="font-size:14px;color:var(--text-secondary);line-height:1.6;">Use mild, soap-free cleansers</span></div>
+            <div style="display:flex;align-items:flex-start;gap:10px;"><div style="width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:6px;flex-shrink:0;"></div><span style="font-size:14px;color:var(--text-secondary);line-height:1.6;">Consider patch testing for contact allergens</span></div>
+            <div style="display:flex;align-items:flex-start;gap:10px;"><div style="width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:6px;flex-shrink:0;"></div><span style="font-size:14px;color:var(--text-secondary);line-height:1.6;">Schedule follow-up with a dermatologist</span></div>
+          </div>
+        </div>
+        <div class="card" style="padding:24px;">
+          <h3 style="font-size:16px;font-weight:500;color:var(--primary);margin-bottom:16px;">Next Steps</h3>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <button class="btn-primary" style="width:100%;text-align:left;display:flex;align-items:center;gap:12px;" onclick="showPage('doctor')">👨‍⚕️ Request Doctor Review</button>
+
+            <button class="btn-outline" style="width:100%;text-align:left;display:flex;align-items:center;gap:12px;">📋 Download Full Report</button>
+          </div>
+          <div style="margin-top:20px;padding:12px 16px;background:#FEF9F0;border-radius:10px;border:1px solid #F4E4C0;">
+            <div style="font-size:12px;color:#8B5E0A;line-height:1.6;">⚠️ This analysis is for informational purposes only and does not constitute medical advice. Please consult a qualified dermatologist.</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:20px;text-align:center;">
+        <button class="btn-outline" onclick="resetAnalysis()">← Start New Analysis</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CHAT PAGE ===== -->
+<div id="page-chat" class="page">
+  <div style="max-width:780px;margin:0 auto;padding:40px 32px;display:flex;flex-direction:column;height:calc(100vh - 64px);">
+    <div style="margin-bottom:20px;">
+      <span class="tag tag-green" style="margin-bottom:10px;display:inline-block;">AI Assistant</span>
+      <h1 class="serif" style="font-size:30px;font-weight:600;color:var(--primary);">DermaCare</h1>
+    </div>
+    <div class="card" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;align-items:center;justify-content:center;font-size:17px;">🤖</div>
+        <div>
+          <div style="font-size:14px;font-weight:500;color:var(--text-primary);">DermaCare Support</div>
+          <div style="font-size:12px;color:var(--success);display:flex;align-items:center;gap:4px;"><span style="width:6px;height:6px;border-radius:50%;background:var(--success);display:inline-block;"></span> Online</div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;">
+          <span class="tag tag-blue" style="font-size:11px;">AI-powered</span>
+          <span class="tag tag-green" style="font-size:11px;">Dermatology</span>
+        </div>
+      </div>
+      <div id="chat-messages" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;">
+        <div style="display:flex;justify-content:flex-start;gap:10px;align-items:flex-end;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--surface-alt);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;">🤖</div>
+          <div class="chat-bubble-ai">Hello! I'm DermAI, your skin health assistant. I can help you understand skin conditions, analyze symptoms, and guide you on when to seek professional care. How can I help you today?</div>
+        </div>
+      </div>
+      <div id="chat-suggestions" style="padding:0 20px 14px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="sendSuggestion(this)" style="background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--text-secondary);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;" onmouseover="this.style.background='var(--surface-alt)';this.style.borderColor='var(--primary-light)';" onmouseout="this.style.background='var(--bg)';this.style.borderColor='var(--border)';">What does eczema look like?</button>
+        <button onclick="sendSuggestion(this)" style="background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--text-secondary);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;" onmouseover="this.style.background='var(--surface-alt)';this.style.borderColor='var(--primary-light)';" onmouseout="this.style.background='var(--bg)';this.style.borderColor='var(--border)';">How to treat acne at home?</button>
+        <button onclick="sendSuggestion(this)" style="background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--text-secondary);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;" onmouseover="this.style.background='var(--surface-alt)';this.style.borderColor='var(--primary-light)';" onmouseout="this.style.background='var(--bg)';this.style.borderColor='var(--border)';">When should I see a dermatologist?</button>
+        <button onclick="sendSuggestion(this)" style="background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--text-secondary);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;" onmouseover="this.style.background='var(--surface-alt)';this.style.borderColor='var(--primary-light)';" onmouseout="this.style.background='var(--bg)';this.style.borderColor='var(--border)';">What is rosacea?</button>
+      </div>
+      <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:10px;">
+        <input type="text" id="chat-input" placeholder="Describe your skin concern..." onkeydown="if(event.key==='Enter')sendChat()"/>
+        <button class="btn-primary" onclick="sendChat()" style="padding:10px 20px;white-space:nowrap;">Send</button>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text-muted);text-align:center;">AI responses are for informational purposes only. Always consult a licensed dermatologist for medical advice.</div>
+  </div>
+</div>
+
+<!-- ===== DOCTOR PAGE ===== -->
+<div id="page-doctor" class="page">
+  <div style="max-width:1100px;margin:0 auto;padding:40px 32px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;">
+      <div>
+        <span class="tag tag-green" style="margin-bottom:10px;display:inline-block;">Doctor Portal</span>
+        <h1 class="serif" style="font-size:32px;font-weight:600;color:var(--primary);">Review Dashboard</h1>
+        <p style="font-size:14px;color:var(--text-secondary);margin-top:4px;">Welcome back, Dr. Ahmad — Monday, 3 May 2026</p>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-outline" style="padding:9px 18px;font-size:13px;display:flex;align-items:center;gap:6px;">
+          🔔 Notifications <span style="background:var(--danger);color:white;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;">2</span>
+        </button>
+        <button class="btn-primary" style="padding:9px 18px;font-size:13px;">+ Add Case</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;">
+      <div style="background:white;border-radius:12px;padding:20px 22px;border:1px solid var(--border);border-left:4px solid var(--warning);"><div class="serif" style="font-size:30px;font-weight:600;color:var(--warning);">2</div><div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">Pending Review</div></div>
+      <div style="background:white;border-radius:12px;padding:20px 22px;border:1px solid var(--border);border-left:4px solid var(--info);"><div class="serif" style="font-size:30px;font-weight:600;color:var(--info);">1</div><div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">In Progress</div></div>
+      <div style="background:white;border-radius:12px;padding:20px 22px;border:1px solid var(--border);border-left:4px solid var(--success);"><div class="serif" style="font-size:30px;font-weight:600;color:var(--success);">8</div><div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">Completed Today</div></div>
+      <div style="background:white;border-radius:12px;padding:20px 22px;border:1px solid var(--border);border-left:4px solid var(--accent);"><div class="serif" style="font-size:30px;font-weight:600;color:var(--accent);">12m</div><div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">Avg. Review Time</div></div>
+    </div>
+    <div style="display:flex;gap:0;margin-bottom:20px;background:var(--bg);border-radius:10px;padding:4px;width:fit-content;">
+      <button class="tab-btn active" onclick="setTab(this,'queue')">Review Queue</button>
+      <button class="tab-btn" onclick="setTab(this,'history')">History</button>
+      <button class="tab-btn" onclick="setTab(this,'settings')">Settings</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr;gap:20px;" id="doctor-grid">
+      <div class="card" style="overflow:hidden;">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:15px;font-weight:500;color:var(--text-primary);">Patient Cases</div>
+          <input type="text" placeholder="Search cases..." style="width:180px;padding:7px 12px;font-size:13px;"/>
+        </div>
+        <div>
+          <div class="case-row" onclick="toggleCase('C-2041',this)" data-case="C-2041">
+            <div style="width:40px;height:40px;border-radius:50%;background:#FDE8E8;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--danger);flex-shrink:0;">SM</div>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><span style="font-size:14px;font-weight:500;">Sarah M. <span style="font-size:12px;color:var(--text-muted);font-weight:400;">· Age 28</span></span><span style="font-size:12px;color:var(--text-muted);">2h ago</span></div>
+              <div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px;">Suspected Eczema</div>
+              <div style="display:flex;gap:6px;"><span class="tag tag-red" style="font-size:11px;">Urgent</span><span class="tag tag-amber" style="font-size:11px;">Pending</span><span style="font-size:11px;color:var(--text-muted);align-self:center;">AI: 94%</span></div>
+            </div>
+          </div>
+          <div class="case-row" onclick="toggleCase('C-2040',this)" data-case="C-2040">
+            <div style="width:40px;height:40px;border-radius:50%;background:var(--surface-alt);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--primary);flex-shrink:0;">JK</div>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><span style="font-size:14px;font-weight:500;">James K. <span style="font-size:12px;color:var(--text-muted);font-weight:400;">· Age 45</span></span><span style="font-size:12px;color:var(--text-muted);">4h ago</span></div>
+              <div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px;">Possible Melanoma</div>
+              <div style="display:flex;gap:6px;"><span class="tag tag-blue" style="font-size:11px;">Normal</span><span class="tag tag-amber" style="font-size:11px;">Pending</span><span style="font-size:11px;color:var(--text-muted);align-self:center;">AI: 72%</span></div>
+            </div>
+          </div>
+          <div class="case-row" onclick="toggleCase('C-2039',this)" data-case="C-2039">
+            <div style="width:40px;height:40px;border-radius:50%;background:var(--surface-alt);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--primary);flex-shrink:0;">PR</div>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><span style="font-size:14px;font-weight:500;">Priya R. <span style="font-size:12px;color:var(--text-muted);font-weight:400;">· Age 33</span></span><span style="font-size:12px;color:var(--text-muted);">6h ago</span></div>
+              <div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px;">Rosacea</div>
+              <div style="display:flex;gap:6px;"><span class="tag tag-blue" style="font-size:11px;">Normal</span><span class="tag tag-blue" style="font-size:11px;">In Review</span><span style="font-size:11px;color:var(--text-muted);align-self:center;">AI: 88%</span></div>
+            </div>
+          </div>
+          <div class="case-row" onclick="toggleCase('C-2038',this)" data-case="C-2038">
+            <div style="width:40px;height:40px;border-radius:50%;background:var(--surface-alt);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--primary);flex-shrink:0;">TH</div>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><span style="font-size:14px;font-weight:500;">Tom H. <span style="font-size:12px;color:var(--text-muted);font-weight:400;">· Age 19</span></span><span style="font-size:12px;color:var(--text-muted);">1d ago</span></div>
+              <div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px;">Acne Vulgaris</div>
+              <div style="display:flex;gap:6px;"><span class="tag tag-green" style="font-size:11px;">Low</span><span class="tag tag-green" style="font-size:11px;">Completed</span><span style="font-size:11px;color:var(--text-muted);align-self:center;">AI: 96%</span></div>
+            </div>
+          </div>
+          <div class="case-row" style="border-bottom:none;" onclick="toggleCase('C-2037',this)" data-case="C-2037">
+            <div style="width:40px;height:40px;border-radius:50%;background:var(--surface-alt);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--primary);flex-shrink:0;">LC</div>
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;"><span style="font-size:14px;font-weight:500;">Linda C. <span style="font-size:12px;color:var(--text-muted);font-weight:400;">· Age 52</span></span><span style="font-size:12px;color:var(--text-muted);">1d ago</span></div>
+              <div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px;">Psoriasis</div>
+              <div style="display:flex;gap:6px;"><span class="tag tag-blue" style="font-size:11px;">Normal</span><span class="tag tag-green" style="font-size:11px;">Completed</span><span style="font-size:11px;color:var(--text-muted);align-self:center;">AI: 91%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Case Detail Panel -->
+      <div id="case-detail" class="card" style="overflow:hidden;display:none;">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+          <div id="case-detail-title" style="font-size:15px;font-weight:500;color:var(--text-primary);">Case Details</div>
+          <button onclick="closeCase()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-muted);">✕</button>
+        </div>
+        <div style="padding:20px;" id="case-detail-body"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer style="background:var(--primary);color:rgba(255,255,255,0.6);padding:28px 32px;margin-top:40px;font-size:13px;">
+  <div style="max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:24px;height:24px;background:rgba(255,255,255,0.15);border-radius:6px;display:flex;align-items:center;justify-content:center;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" fill="white"/></svg>
+      </div>
+      <span style="color:rgba(255,255,255,0.8);">DermaCare</span>
+    </div>
+    <span>© 2026 DermaCare · Not a substitute for medical advice</span>
+    <div style="display:flex;gap:20px;">
+      <span style="cursor:pointer;">Privacy</span>
+      <span style="cursor:pointer;">Terms</span>
+      <span style="cursor:pointer;">Contact</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Navigation
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    const navEl = document.getElementById('nav-' + id);
+    if (navEl) navEl.classList.add('active');
+    window.scrollTo(0,0);
+  }
+
+  // Analysis flow
+  function handleDrop(e) {
+    e.preventDefault();
+    e.currentTarget.style.borderColor = 'var(--border)';
+    e.currentTarget.style.background = 'white';
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) loadPreview(file);
+  }
+  function handleFileSelect(input) {
+    if (input.files[0]) loadPreview(input.files[0]);
+  }
+  function loadPreview(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('preview-img').src = e.target.result;
+      document.getElementById('analysis-upload').style.display = 'none';
+      document.getElementById('analysis-preview').style.display = 'block';
+      updateSteps(2);
+    };
+    reader.readAsDataURL(file);
+  }
+  function resetAnalysis() {
+    document.getElementById('analysis-upload').style.display = 'block';
+    document.getElementById('analysis-preview').style.display = 'none';
+    document.getElementById('analysis-loading').style.display = 'none';
+    document.getElementById('analysis-results').style.display = 'none';
+    document.getElementById('file-input').value = '';
+    updateSteps(1);
+  }
+  function updateSteps(active) {
+    for (let i = 1; i <= 4; i++) {
+      const num = document.getElementById('step-n' + i);
+      const lbl = document.getElementById('step-l' + i);
+      if (num) {
+        num.className = 'step-num ' + (i <= active ? 'done' : 'pending');
+        if (lbl) { lbl.style.color = i <= active ? 'var(--primary)' : 'var(--text-muted)'; lbl.style.fontWeight = i === active ? '500' : '400'; }
+      }
+    }
+  }
+  function startAnalysis() {
+    document.getElementById('analysis-preview').style.display = 'none';
+    document.getElementById('analysis-loading').style.display = 'block';
+    updateSteps(3);
+    let progress = 0;
+    const steps = document.querySelectorAll('.analysis-step');
+    const bar = document.getElementById('progress-bar');
+    const txt = document.getElementById('progress-text');
+    const interval = setInterval(() => {
+      progress += Math.random() * 8 + 3;
+      if (progress >= 100) { progress = 100; clearInterval(interval); setTimeout(showResults, 400); }
+      bar.style.width = Math.min(progress, 100) + '%';
+      txt.textContent = Math.min(Math.round(progress), 100) + '% complete';
+      steps.forEach((s, i) => { s.style.color = progress > i * 25 ? 'var(--primary)' : 'var(--text-muted)'; });
+    }, 180);
+  }
+  function showResults() {
+    document.getElementById('analysis-loading').style.display = 'none';
+    document.getElementById('analysis-results').style.display = 'block';
+    updateSteps(4);
+  }
+
+  // Chat
+  const aiResponses = {
+    acne: "Acne occurs when hair follicles become clogged with oil and dead skin cells. For mild cases, over-the-counter products with benzoyl peroxide, salicylic acid, or adapalene can be effective. Avoid picking or squeezing lesions. If you have moderate to severe acne, a dermatologist can prescribe stronger treatments.",
+    eczema: "Eczema (atopic dermatitis) presents as dry, itchy, inflamed skin. Key management includes: using fragrance-free moisturizers regularly, identifying and avoiding triggers, using mild cleansers, and keeping nails short. Prescription topical corticosteroids may be needed for flare-ups. Would you like to upload a photo for a more detailed analysis?",
+    rosacea: "Rosacea is a chronic skin condition causing facial redness, visible blood vessels, and sometimes acne-like bumps. Triggers include sun exposure, spicy foods, alcohol, and stress. Treatment options include topical metronidazole, azelaic acid, and laser therapy. A dermatologist can confirm the diagnosis.",
+    default: "That's a great question about skin health. Based on what you've described, I'd recommend keeping the area moisturized and avoiding harsh soaps or irritants. If symptoms persist for more than 2 weeks or worsen, please consult a board-certified dermatologist. Would you like to upload a photo for AI analysis?"
+  };
+  function sendSuggestion(btn) {
+    const text = btn.textContent;
+    document.getElementById('chat-suggestions').style.display = 'none';
+    addMessage(text, 'user');
+    setTimeout(() => {
+      const lower = text.toLowerCase();
+      const resp = lower.includes('acne') ? aiResponses.acne : lower.includes('eczema') ? aiResponses.eczema : lower.includes('rosacea') ? aiResponses.rosacea : aiResponses.default;
+      removeTyping(); addMessage(resp, 'ai');
+    }, 1600);
+    showTyping();
+  }
+  function sendChat() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    document.getElementById('chat-suggestions').style.display = 'none';
+    addMessage(text, 'user');
+    showTyping();
+    setTimeout(() => {
+      const lower = text.toLowerCase();
+      const resp = lower.includes('acne') ? aiResponses.acne : lower.includes('eczema') ? aiResponses.eczema : lower.includes('rosacea') ? aiResponses.rosacea : aiResponses.default;
+      removeTyping(); addMessage(resp, 'ai');
+    }, 1600);
+  }
+  function addMessage(text, role) {
+    const msgs = document.getElementById('chat-messages');
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;justify-content:' + (role==='user'?'flex-end':'flex-start') + ';gap:10px;align-items:flex-end;';
+    if (role === 'ai') wrap.innerHTML = '<div style="width:28px;height:28px;border-radius:50%;background:var(--surface-alt);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;">🤖</div>';
+    const bubble = document.createElement('div');
+    bubble.className = role === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai';
+    bubble.textContent = text;
+    wrap.appendChild(bubble);
+    if (role === 'user') wrap.innerHTML += '<div style="width:28px;height:28px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:12px;color:white;font-weight:600;flex-shrink:0;">U</div>';
+    msgs.appendChild(wrap);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  function showTyping() {
+    const msgs = document.getElementById('chat-messages');
+    const wrap = document.createElement('div');
+    wrap.id = 'typing-indicator';
+    wrap.style.cssText = 'display:flex;justify-content:flex-start;gap:10px;align-items:flex-end;';
+    wrap.innerHTML = '<div style="width:28px;height:28px;border-radius:50%;background:var(--surface-alt);display:flex;align-items:center;justify-content:center;font-size:13px;">🤖</div><div class="chat-bubble-ai" style="display:flex;gap:5px;align-items:center;padding:14px 18px;"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
+    msgs.appendChild(wrap);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  function removeTyping() {
+    const el = document.getElementById('typing-indicator');
+    if (el) el.remove();
+  }
+
+  // Doctor portal
+  const caseData = {
+    'C-2041': { patient: 'Sarah M.', age: 28, avatar: 'SM', condition: 'Suspected Eczema', confidence: 94, priority: 'Urgent', priorityClass: 'tag-red' },
+    'C-2040': { patient: 'James K.', age: 45, avatar: 'JK', condition: 'Possible Melanoma', confidence: 72, priority: 'Normal', priorityClass: 'tag-blue' },
+    'C-2039': { patient: 'Priya R.', age: 33, avatar: 'PR', condition: 'Rosacea', confidence: 88, priority: 'Normal', priorityClass: 'tag-blue' },
+    'C-2038': { patient: 'Tom H.', age: 19, avatar: 'TH', condition: 'Acne Vulgaris', confidence: 96, priority: 'Low', priorityClass: 'tag-green' },
+    'C-2037': { patient: 'Linda C.', age: 52, avatar: 'LC', condition: 'Psoriasis', confidence: 91, priority: 'Normal', priorityClass: 'tag-blue' },
+  };
+  let activeCase = null;
+  function toggleCase(id, row) {
+    if (activeCase === id) { closeCase(); return; }
+    activeCase = id;
+    document.querySelectorAll('.case-row').forEach(r => r.classList.remove('selected'));
+    row.classList.add('selected');
+    const c = caseData[id];
+    document.getElementById('case-detail-title').textContent = 'Case ' + id;
+    document.getElementById('case-detail-body').innerHTML = `
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+        <div style="width:50px;height:50px;border-radius:50%;background:var(--surface-alt);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:var(--primary);">${c.avatar}</div>
+        <div><div style="font-size:17px;font-weight:500;color:var(--text-primary);">${c.patient}</div><div style="font-size:13px;color:var(--text-secondary);">Age ${c.age} · Case ${id}</div></div>
+        <span class="tag ${c.priorityClass}" style="margin-left:auto;">${c.priority}</span>
+      </div>
+      <div style="background:var(--bg);border-radius:10px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.7px;">AI Analysis Summary</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:15px;font-weight:500;">${c.condition}</span>
+          <span class="serif" style="font-size:20px;font-weight:600;color:var(--primary);">${c.confidence}%</span>
+        </div>
+        <div style="height:4px;background:var(--border);border-radius:2px;"><div style="height:100%;width:${c.confidence}%;background:${c.confidence > 85 ? 'var(--primary)' : 'var(--warning)'};border-radius:2px;"></div></div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:8px;">Patient Upload</div>
+        <div style="height:120px;background:var(--bg);border-radius:10px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;">
+          <span style="font-size:24px;">🖼</span><span style="font-size:13px;color:var(--text-muted);">Patient photo attached</span>
+        </div>
+      </div>
+      <div style="margin-bottom:14px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:6px;">Doctor Notes</div><textarea placeholder="Add your clinical observations..." style="height:90px;resize:vertical;"></textarea></div>
+      <div style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:6px;">Confirmed Diagnosis</div><input type="text" placeholder="Enter confirmed diagnosis..."/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button class="btn-outline" style="width:100%;">Request More Info</button>
+        <button class="btn-primary" style="width:100%;" onclick="submitReview()">✓ Submit Review</button>
+      </div>
+    `;
+    const grid = document.getElementById('doctor-grid');
+    grid.style.gridTemplateColumns = '1fr 1.2fr';
+    document.getElementById('case-detail').style.display = 'block';
+  }
+  function closeCase() {
+    activeCase = null;
+    document.querySelectorAll('.case-row').forEach(r => r.classList.remove('selected'));
+    document.getElementById('case-detail').style.display = 'none';
+    document.getElementById('doctor-grid').style.gridTemplateColumns = '1fr';
+  }
+  function submitReview() {
+    alert('Review submitted successfully! The patient will be notified.');
+    closeCase();
+  }
+  function setTab(btn, tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  // Show all conditions modal
+  function showAllConditions() {
+    const allConditions = [
+      'Acne & Breakouts','Eczema','Psoriasis','Rosacea','Melasma','Skin Lesions',
+      'Dermatitis','Fungal Infections','Hives (Urticaria)','Seborrheic Dermatitis',
+      'Vitiligo','Ringworm','Warts','Cold Sores','Impetigo','Cellulitis',
+      'Scabies','Shingles (Herpes Zoster)','Basal Cell Carcinoma','Melanoma',
+      'Squamous Cell Carcinoma','Keratosis Pilaris','Milia','Cysts',
+      'Lipomas','Hemangiomas','Port Wine Stains','Stretch Marks','Keloids',
+      'Hypertrophic Scars','Alopecia','Hair Loss','Dandruff','Tinea Versicolor',
+      'Pityriasis Rosea','Lichen Planus','Pemphigus','Bullous Pemphigoid',
+      'Erythema Multiforme','Stevens-Johnson Syndrome','Lupus (Skin)','Scleroderma',
+      'Morphea','Granuloma Annulare','Necrobiosis Lipoidica','Nail Fungus',
+      'Ingrown Toenails','Paronychia','Onycholysis','Perioral Dermatitis'
+    ];
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;';
+    overlay.onclick = (e) => { if(e.target===overlay) overlay.remove(); };
+    overlay.innerHTML = \`
+      <div style="background:white;border-radius:20px;padding:36px;max-width:700px;width:100%;max-height:80vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+          <div>
+            <h2 style="font-family:'Cormorant Garamond',serif;font-size:26px;color:#0B3D35;font-weight:600;">Conditions We Review</h2>
+            <p style="font-size:14px;color:#7A9990;margin-top:4px;">All cases reviewed by certified dermatologists</p>
+          </div>
+          <button onclick="this.closest('div[style*=fixed]').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#7A9990;">✕</button>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+          \${allConditions.map(c => \`<span class="condition-tag">\${c}</span>\`).join('')}
+        </div>
+        <div style="margin-top:24px;text-align:center;">
+          <button onclick="window.location.href='/dermacare/auth/register_page.php'" style="background:#0B3D35;color:white;border:none;border-radius:9px;padding:12px 28px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;">Submit Your Case</button>
+        </div>
+      </div>
+    \`;
+    document.body.appendChild(overlay);
+  }
+
+  // Smart nav — role based
+  function handleDoctorClick() {
+    fetch('/dermacare/auth/check_session.php', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.logged_in && data.role === 'dermatologist') {
+          window.location.href = '/dermacare/dermatologist/dashboard.php';
+        } else {
+          window.location.href = '/dermacare/auth/login_page.php';
+        }
+      })
+      .catch(() => window.location.href = '/dermacare/auth/login_page.php');
+  }
+
+  // Update nav based on session
+  fetch('/dermacare/auth/check_session.php', { credentials: 'include' })
+    .then(r => r.json())
+    .then(data => {
+      const btns    = document.getElementById('nav-auth-buttons');
+      const docLink = document.getElementById('nav-doctor');
+      if (data.logged_in) {
+        const dashUrl = data.role === 'dermatologist'
+          ? '/dermacare/dermatologist/dashboard.php'
+          : '/dermacare/patient/dashboard.php';
+        if (data.role === 'dermatologist' && docLink) docLink.style.display = 'inline';
+        if (btns) {
+          btns.innerHTML = \`
+            <span style="font-size:13px;color:var(--text-secondary);">Hi, <strong style="color:var(--primary);">\${data.name}</strong></span>
+            <button class="btn-outline" style="padding:8px 18px;font-size:13px;" onclick="window.location.href='\${dashUrl}'">My Dashboard</button>
+            <button class="btn-primary" style="padding:8px 18px;font-size:13px;" onclick="window.location.href='/dermacare/auth/logout.php'">Logout</button>
+          \`;
+        }
+      } else {
+        if (docLink) docLink.style.display = 'none';
+      }
+    })
+    .catch(() => {});
+</script>
+</body>
+</html>
